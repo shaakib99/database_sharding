@@ -1,9 +1,10 @@
 from database_service.abc_classes import DatabaseABC
-from database_service.mysql_service import MySQLSingleton
+from database_service.mysql_service import MySQLServiceSingleton
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
 class DatabaseService:
-    def __init__(self, database: DatabaseABC, schema: str):
-        self.database = database or MySQLSingleton()
+    def __init__(self, database: DatabaseABC, schema: DeclarativeMeta):
+        self.database = database or MySQLServiceSingleton()
         self.schema = schema
 
     async def connect(self):

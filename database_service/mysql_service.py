@@ -1,8 +1,6 @@
-from typing import Any
 from database_service.abc_classes import DatabaseABC
 
 class MySQLService(DatabaseABC):
-    instance = None
     def __init__(self):
         pass
     
@@ -12,7 +10,7 @@ class MySQLService(DatabaseABC):
     async def disconnect(self):
         pass
 
-    async def get_one(self, id: str, schema):
+    async def get_one(self, id, schema):
         pass
 
     async def get_all(self, query, schema):
@@ -21,13 +19,13 @@ class MySQLService(DatabaseABC):
     async def create_one(self, data, schema):
         pass
 
-    async def update_one(self, id: str, data, schema):
+    async def update_one(self, id, data, schema):
         pass
 
-    async def delete_one(self, id: str, schema):
+    async def delete_one(self, id, schema):
         pass
 
-class MySQLSingleton:
+class MySQLServiceSingleton:
     _instance = None
 
     def __new__(cls) -> 'MySQLService':

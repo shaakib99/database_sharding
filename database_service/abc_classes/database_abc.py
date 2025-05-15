@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from sqlalchemy.ext.declarative import DeclarativeMeta 
 
 class DatabaseABC(ABC):
     def __init__(self):
@@ -14,22 +14,22 @@ class DatabaseABC(ABC):
         pass
     
     @abstractmethod
-    async def get_one(self, id: str, schema):
+    async def get_one(self, id: str, schema: DeclarativeMeta):
         pass
 
     @abstractmethod
-    async def get_all(self, query, schema):
+    async def get_all(self, query, schema: DeclarativeMeta):
         pass
 
     @abstractmethod
-    async def create_one(self, data, schema):
+    async def create_one(self, data, schema: DeclarativeMeta):
         pass
 
     @abstractmethod
-    async def update_one(self, id: str, data, schema):
+    async def update_one(self, id: str, data, schema: DeclarativeMeta):
         pass
 
     @abstractmethod
-    async def delete_one(self, id: str, schema):
+    async def delete_one(self, id: str, schema: DeclarativeMeta):
         pass
 
