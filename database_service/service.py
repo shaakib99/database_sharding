@@ -1,6 +1,8 @@
 from database_service.abc_classes import DatabaseABC
 from database_service.mysql_service import MySQLServiceSingleton
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from pydantic import BaseModel
+from common import CommonQueryModel
 
 class DatabaseService:
     def __init__(self, database: DatabaseABC, schema: DeclarativeMeta):
@@ -16,13 +18,13 @@ class DatabaseService:
     async def get_one(self, id: str):
         return await self.database.get_one(id, self.schema)
     
-    async def get_all(self, query: str):
+    async def get_all(self, query: CommonQueryModel):
         return await self.database.get_all(query, self.schema)
     
-    async def create_one(self, data: dict):
+    async def create_one(self, data: BaseModel):
         return await self.database.create_one(data, self.schema)
     
-    async def update_one(self, id: str, data: dict):
+    async def update_one(self, id: str, data: BaseModel):
         return await self.database.update_one(id, data, self.schema)
     
     async def delete_one(self, id: str):

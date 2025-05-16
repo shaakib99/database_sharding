@@ -39,7 +39,7 @@ class MySQLService(DatabaseABC):
 
 
     async def create_one(self, data, schema):
-        new_record = schema(**data.dict())
+        new_record = schema(**data.model_dump())
         self.session.add(new_record)
         self.session.commit()
         return new_record
