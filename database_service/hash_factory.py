@@ -1,6 +1,4 @@
-from typing_extensions import Self
 from database_service.abc_classes import DatabaseABC
-import bisect
 
 class HashFactory:
     def __init__(self, number_of_slots = 10000):
