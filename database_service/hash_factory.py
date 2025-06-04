@@ -11,8 +11,7 @@ class HashFactory:
         if database is not None:
             return database
         for i in range(self.number_of_slots):
-            next_index = (index + i) % self.number_of_slots
-            database = self.hash_rings[next_index]
+            database = self.hash_rings[i]
             if database is not None:
                 return database
         raise ValueError('No database found for the given key')
