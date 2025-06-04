@@ -16,7 +16,7 @@ class IDGeneratorFactory:
 
     def _get_epoch_ms(self) -> int:
         """Returns milliseconds since Unix epoch (Jan 1, 1970 UTC)"""
-        return int(datetime.utcnow().timestamp() * 1000)
+        return int(datetime.now().timestamp() * 1000)
 
     def create(self, server_id: str, prefix: str | None = None) -> str:
         """
