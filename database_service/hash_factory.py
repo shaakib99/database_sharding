@@ -6,7 +6,7 @@ class HashFactory:
         self.hash_rings: list[DatabaseABC | None] = [None for _ in range(number_of_slots)]
         self.number_of_slots = number_of_slots
     
-    def _hash(self, key) -> int:
+    def _hash(self, key:str) -> int:
         return int(hashlib.md5(key.encode()).hexdigest(), 16)
     
     def get_database_by_key(self, key: str) -> 'DatabaseABC':
@@ -25,7 +25,8 @@ class HashFactory:
         raise ValueError('No database found for the given key')
         
     def add_database(self, database: DatabaseABC):
-        database_index = self._hash(database) % self.number_of_slots
+        database_index = self._hash(str(database)) % self.number_of_slots
+        print(f"Adding database at index {database_index} with hash {self._hash(str(database))}, {self.hash_rings[database_index]}")
         if self.hash_rings[database_index] is None:
             self.hash_rings[database_index] = database
             return
@@ -33,7 +34,7 @@ class HashFactory:
         raise ValueError('Database already exists in the hash ring')
 
     def remove_database(self, database: DatabaseABC):
-        database_index = self._hash(database) % self.number_of_slots
+        database_index = self._hash(str(database)) % self.number_of_slots
         while self.hash_rings[database_index] is None and database_index < self.number_of_slots:
             database_index += 1
 

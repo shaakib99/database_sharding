@@ -3,11 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from common.exceptions import NotFoundException
+from functools import cache
 
 class MySQLService(DatabaseABC):
-    def __init__(self):
-        self.engine = create_engine('mysql+aiomysql://user:password@localhost/dbname')
-        self.Session = sessionmaker(bind=self.engine, class_=AsyncSession)
+    def __init__(self, url: str):
+        print(f"Connecting to MySQL database at {url}")
+        self.engine = create_engine(url, echo=True, future=True, pool_pre_ping=True, pool_size=5, max_overflow=10)
+        self.Session = sessionmaker(bind=self.engine)
         self.session = self.Session()
     
     async def connect(self):
@@ -58,9 +60,6 @@ class MySQLService(DatabaseABC):
         return None
 
 class MySQLServiceSingleton:
-    _instance = None
-
-    def __new__(cls) -> 'MySQLService':
-        if cls._instance is None:
-            cls._instance = MySQLService()
-        return cls._instance
+    @cache
+    def __new__(cls, url: str) -> 'MySQLService':
+        return MySQLService(url)
