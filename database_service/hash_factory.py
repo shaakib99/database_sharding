@@ -1,32 +1,49 @@
 from database_service.abc_classes import DatabaseABC
+import hashlib
 
 class HashFactory:
     def __init__(self, number_of_slots = 10000):
         self.hash_rings: list[DatabaseABC | None] = [None for _ in range(number_of_slots)]
         self.number_of_slots = number_of_slots
     
+    def _hash(self, key) -> int:
+        return int(hashlib.md5(key.encode()).hexdigest(), 16)
+    
     def get_database_by_key(self, key: str) -> 'DatabaseABC':
-        index = hash(key) % self.number_of_slots
+        index = self._hash(key) % self.number_of_slots
+
+        while self.hash_rings[index] is None and index < self.number_of_slots:
+            index += 1
+
+        if index >= self.number_of_slots:
+            raise ValueError('No database found for the given key')
+        
         database = self.hash_rings[index]
         if database is not None:
             return database
-        for i in range(self.number_of_slots):
-            database = self.hash_rings[i]
-            if database is not None:
-                return database
+        
         raise ValueError('No database found for the given key')
         
     def add_database(self, database: DatabaseABC):
-        database_index = hash(database) % self.number_of_slots
+        database_index = self._hash(database) % self.number_of_slots
         if self.hash_rings[database_index] is None:
             self.hash_rings[database_index] = database
+            return
 
         raise ValueError('Database already exists in the hash ring')
 
     def remove_database(self, database: DatabaseABC):
-        database_index = hash(database) % self.number_of_slots
-        if self.hash_rings[database_index] == database:
+        database_index = self._hash(database) % self.number_of_slots
+        while self.hash_rings[database_index] is None and database_index < self.number_of_slots:
+            database_index += 1
+
+        if database_index >= self.number_of_slots:
+            raise ValueError('Database not found in the hash ring')
+        
+
+        if database == self.hash_rings[database_index]:
             self.hash_rings[database_index] = None
+            return
 
         raise ValueError('Database not found in the hash ring')
 
