@@ -1,9 +1,10 @@
 from database_service.abc_classes import DatabaseABC
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from common.exceptions import NotFoundException
 from functools import cache
+from users import UsersBase
 
 class MySQLService(DatabaseABC):
     def __init__(self, url: str):
@@ -11,12 +12,19 @@ class MySQLService(DatabaseABC):
         self.engine = create_engine(url, echo=True, future=True, pool_pre_ping=True, pool_size=5, max_overflow=10)
         self.Session = sessionmaker(bind=self.engine)
         self.session = self.Session()
-    
+        self.create_metadata
+
     async def connect(self):
         self.engine.connect()
 
     async def disconnect(self):
         self.engine.dispose()
+    
+    def create_metadata(self):
+        tables: list[DeclarativeMeta] = [UsersBase]
+        for table in tables:
+            table.metadata.create_all(bind=self.engine)
+
 
     async def get_one(self, id, schema):
         cursor = self.session.query(schema)
