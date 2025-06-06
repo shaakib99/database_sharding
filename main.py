@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from startup_tasks import StartupTasks
+from users import user_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,6 +16,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+routers: list[APIRouter] = [user_router]
+for router in routers:
+    app.include_router(router)
 
 @app.get("/")
 async def root():
