@@ -12,6 +12,12 @@ class DatabaseService(Generic[T]):
     def __init__(self, schema: Type[T], hash_factory: HashFactory | None = None):
         self.schema = schema
         self.hash_factory = hash_factory or HashFactorySingleton()
+    
+    async def get_dabases(self) -> list[DatabaseABC]:
+        databases: list[DatabaseABC] = [
+            MySQLServiceSingleton()
+        ]
+        return databases
 
     async def connect(self):
         databases: list[DatabaseABC] = [

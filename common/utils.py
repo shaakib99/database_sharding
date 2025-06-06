@@ -1,3 +1,6 @@
+import os
+from database_service.mysql_service import MySQLServiceSingleton
+from database_service import DatabaseABC
 def get_database_by_shard_key(shard_key: str):
     """
     This function retrieves the database connection based on the shard key.
@@ -26,3 +29,11 @@ def generate_id(prefix: str) -> str:
     # Placeholder for actual implementation
     # This should return a unique identifier, e.g., using UUID or similar
     raise NotImplementedError("This function needs to be implemented.")
+
+def get_databases() -> list[DatabaseABC]:
+    database_urls = os.getenv('AVAILABLE_DATABASES', '').split(',')
+    databases: list[DatabaseABC] = []
+    for database_url in database_urls:
+        database = MySQLServiceSingleton(database_url.strip())
+        databases.append(database)
+    return databases
