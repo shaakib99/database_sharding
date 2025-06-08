@@ -1,4 +1,5 @@
 from database_service.abc_classes import DatabaseABC
+from database_service.redis_service import RedisService
 import hashlib
 
 class HashFactory:
