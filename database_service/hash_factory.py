@@ -33,7 +33,6 @@ class HashFactory:
         
     def add_database(self, database: DatabaseABC):
         database_index = self._hash(str(database)) % self.number_of_slots
-        print(f"Adding database at index {database_index} with hash {self._hash(str(database))}, {self.hash_rings[database_index]}")
         if self.hash_rings[database_index] is None:
             self.hash_rings[database_index] = database
             return
