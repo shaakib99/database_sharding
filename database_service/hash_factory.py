@@ -12,13 +12,19 @@ class HashFactory:
     
     def get_database_by_key(self, key: str) -> 'DatabaseABC':
         index = self._hash(key) % self.number_of_slots
+        visited_index = set()
 
         while self.hash_rings[index] is None and index < self.number_of_slots:
+            visited_index.add(index)
             index += 1
 
+
         if index >= self.number_of_slots:
-            raise ValueError('No database found for the given key')
-        
+            index = 0
+            while self.hash_rings[index] is None and index not in visited_index:
+                visited_index.add(index)
+                index += 1
+            
         database = self.hash_rings[index]
         if database is not None:
             return database

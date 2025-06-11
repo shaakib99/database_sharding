@@ -70,6 +70,8 @@ class MySQLService(DatabaseABC):
         return None
 
 class MySQLServiceSingleton:
-    @cache
+    _instance_mapper = {}
     def __new__(cls, url: str) -> 'MySQLService':
-        return MySQLService(url)
+        if url not in cls._instance_mapper:
+            cls._instance_mapper[url] = MySQLService(url)
+        return cls._instance_mapper[url]

@@ -12,7 +12,7 @@ class UsersService(ServiceABC[UserModelCreate, UserModelUpdate, UserModel, Commo
         unique_id = generate_id('USER_')
         user_model = UserModel()
         user_model.id = unique_id
-        return await self.database_service.create_one(user_model)
+        return await self.database_service.create_one(user_model, unique_id)
 
     async def update(self, id: str, data: UserModelUpdate):
         user_model = UserModel()
