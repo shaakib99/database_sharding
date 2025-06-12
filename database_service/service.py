@@ -3,7 +3,7 @@ from sqlalchemy.orm import DeclarativeBase
 from pydantic import BaseModel
 from common import CommonQueryModel, get_databases
 from typing import Type, Generic, TypeVar
-from .shard_service import ShardService, ShardServiceSingleton
+from shard_service import ShardService, ShardServiceSingleton
 
 T = TypeVar('T', bound=DeclarativeBase)
 
