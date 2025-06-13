@@ -4,12 +4,13 @@ from database_service import DatabaseABC
 from database_service.mysql_service import MySQLServiceSingleton
 from database_service.service import DatabaseService
 from common.models.common_query_model import CommonQueryModel
+from shard_service.shard_service import ShardService, ShardServiceSingleton
 from pydantic import BaseModel
 
 class KeyRedistributionService:
-    def __init__(self, schema, hash_factory: HashFactory, database_service: DatabaseABC, model: BaseModel):
+    def __init__(self, schema, shard_service: ShardService, database_service: DatabaseABC, model: BaseModel):
         self.schema = schema
-        self.hash_factory = hash_factory
+        self.shard_service = shard_service or ShardServiceSingleton()
         self.database_service = database_service
         self.model = model
 
@@ -23,7 +24,8 @@ class KeyRedistributionService:
             _datamodel = self.model.model_validate(item)
             id_value = getattr(_datamodel, "id", None)
             if id_value is None: continue
+            target_db = await self.shard_service.get_database_from_id(id_value)
 
-            if self.hash_factory.get_database_by_key(id_value) == target_database:
+            if target_db == target_database:
                 await target_database.create_one(_datamodel, self.schema)
                 await source_database.delete_one(id_value, self.schema)
