@@ -45,3 +45,11 @@ class DatabaseService(Generic[T]):
     async def delete_one(self, id: str) -> None:
         database: DatabaseABC = await self.shard_service.get_database_from_id(id)
         return await database.delete_one(id, self.schema)
+
+    @staticmethod
+    async def get_data_from_selected_database(database: DatabaseABC, query: CommonQueryModel, schema: Type[T]) -> list[T]:
+        return await database.get_all(query, schema)
+
+    @staticmethod
+    async def create_data_from_selected_database(database: DatabaseABC, data: BaseModel, schema: Type[T]) -> list[T]:
+        return await database.create_one(data, schema)

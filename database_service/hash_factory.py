@@ -53,6 +53,9 @@ class HashFactory:
             return
 
         raise ValueError('Database not found in the hash ring')
+    
+    def get_hash_index(self, key: str) -> int:
+        return self._hash(key) % self.number_of_slots
 
 class HashFactorySingleton:
     _instance = None
