@@ -50,3 +50,12 @@ class DatabaseServiceABC(Generic[S, T], ABC):
     async def create_using_selected_database(self, data: T, database: DatabaseABC) -> S:
         """Create a single record in the selected database."""
         pass
+
+    @abstractmethod
+    async def update_using_selected_database(self, id: str, data: T, database: DatabaseABC):
+        """Update a single record in the selected database"""
+    
+    @abstractmethod
+    async def delete_using_selected_database(self, id: str, database: DatabaseABC):
+        """Delete a single in the selected database"""
+    
