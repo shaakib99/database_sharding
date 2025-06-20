@@ -9,6 +9,12 @@ class RedisService(Generic[T]):
     def __init__(self, host: str, port: int):
         self.redis_client = Redis(host=host, port=port)
     
+    async def connect(self):
+        self.redis_client.ping()
+    
+    async def disconnect(self):
+        self.redis_client.quit()
+    
     async def get(self, key: str) -> T | None:
         data = await self.redis_client.get(key)
         if not data: return data.model_validate()

@@ -48,11 +48,14 @@ class ConsistentHashService:
         if self.hash_ring[index] is not None: raise ValueError('Database already exist')
         
         source_database = self._find_next_database_from_index(index)
+        delete_keys = []
         if source_database is not None:
             for schema in get_all_schemas_in_order(): 
-                await self.redistribute_keys(source_database, database, schema)
+                delete_keys = await self.redistribute_keys(source_database, database, schema)
 
         self.hash_ring[index] = database
+
+        await self.remove_keys(source_database, delete_keys)
 
     async def remove_database_from_hash_ring(self, database: DatabaseABC):
         index = self._hash(database.__str__()) % self.number_of_slots
@@ -60,10 +63,14 @@ class ConsistentHashService:
         
         target_database = self._find_next_database_from_index(index)
         if target_database is None: raise ValueError('Can not move keys. No other database exist')
+
+        delete_keys = []
         for schema in get_all_schemas_in_order():
-            await self.redistribute_keys(database, target_database, schema)
+            delete_keys = await self.redistribute_keys(database, target_database, schema)
             
         self.hash_ring[index] = None
+
+        await self.remove_keys(database, delete_keys)
     
     async def redistribute_keys(self, source_database: DatabaseABC, target_database: DatabaseABC, schema):
         source_data = await source_database.get_all(QueryModel(), schema)
@@ -71,12 +78,13 @@ class ConsistentHashService:
         for item in source_data:
             if self.get_database_from_unique_id(item.id) != target_database: continue
             await target_database.create_one(item, schema)
-            delete_data.append(item)
-        
-        for item in delete_data:
-            await source_database.delete_one(item.id, schema)
+            delete_data.append((item, schema))
+        return delete_data
 
-        
+    
+    async def remove_keys(self, database, keys: list):
+        for item, schema in keys:
+            await database.delete_one(item.id, schema)
 
 
 class ConsistentHashServiceSingleton:

@@ -6,6 +6,16 @@ class DatabaseService(DatabaseServiceABC):
     def __init__(self, schema):
         self.schema = schema
     
+    async def connect(self) -> None:
+        databases: list[DatabaseABC] = []
+        for database in databases:
+            await database.connect()
+    
+    async def disconnect(self) -> None:
+        databases: list[DatabaseABC] = []
+        for database in databases:
+            await database.disconnect()
+    
     async def create_one(self, data):
         database = MySQLServiceSingleton('test')
         return await database.create_one(data, self.schema)
@@ -21,6 +31,10 @@ class DatabaseService(DatabaseServiceABC):
     async def get_all(self, query) -> list:
         database = MySQLServiceSingleton('test')
         return await database.get_all(query, self.schema)
+
+    async def delete_one(self, id: str) -> None:
+        database = MySQLServiceSingleton('test')
+        return await database.delete_one(id, self.schema)
     
     async def create_using_selected_database(self, data, database):
         return await database.create_one(data, self.schema)
