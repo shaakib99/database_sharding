@@ -1,39 +1,47 @@
 from database_service.abcs.database_abc import DatabaseABC
 from .abcs.database_service_abc import DatabaseServiceABC
-from .mysql_service.service import MySQLServiceSingleton
+from consistent_hash_service.service import ConsistentHashServiceSingleton, ConsistentHashService
+from typing import TypeVar
+from sqlalchemy.orm import DeclarativeBase
+
+T = TypeVar('T', bound=DeclarativeBase)
 
 class DatabaseService(DatabaseServiceABC):
-    def __init__(self, schema):
+    def __init__(self, schema, consistent_hash_service: ConsistentHashService | None = None):
         self.schema = schema
+        self.consistent_hash_service = consistent_hash_service or ConsistentHashServiceSingleton()
     
     async def connect(self) -> None:
-        databases: list[DatabaseABC] = []
+        databases: list[DatabaseABC] = await self.consistent_hash_service.get_all_database()
         for database in databases:
             await database.connect()
     
     async def disconnect(self) -> None:
-        databases: list[DatabaseABC] = []
+        databases: list[DatabaseABC] = await self.consistent_hash_service.get_all_database()
         for database in databases:
             await database.disconnect()
     
     async def create_one(self, data):
-        database = MySQLServiceSingleton('test')
+        database = await self.consistent_hash_service.get_database_from_unique_id(data.id)
         return await database.create_one(data, self.schema)
     
     async def update_one(self, id: str, data):
-        database = MySQLServiceSingleton('test')
+        database = await self.consistent_hash_service.get_database_from_unique_id(id)
         return await database.update_one(id, data, self.schema)
     
     async def get_one(self, id: str):
-        database = MySQLServiceSingleton('test')
+        database = await self.consistent_hash_service.get_database_from_unique_id(id)
         return database.get_one(id, self.schema)
     
     async def get_all(self, query) -> list:
-        database = MySQLServiceSingleton('test')
-        return await database.get_all(query, self.schema)
+        databases = await self.consistent_hash_service.get_all_database()
+        result = []
+        for database in databases:
+            result.append(await database.get_all(query, self.schema))
+        return result
 
     async def delete_one(self, id: str) -> None:
-        database = MySQLServiceSingleton('test')
+        database = await self.consistent_hash_service.get_database_from_unique_id(id)
         return await database.delete_one(id, self.schema)
     
     async def create_using_selected_database(self, data, database):
@@ -44,3 +52,6 @@ class DatabaseService(DatabaseServiceABC):
     
     async def delete_using_selected_database(self, id: str, database: DatabaseABC):
         return await database.delete_one(id, self.schema)
+    
+    async def create_metadata(self, database: DatabaseABC):
+        await database.create_metadata(self.schema)

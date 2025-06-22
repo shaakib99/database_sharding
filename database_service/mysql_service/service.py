@@ -16,6 +16,9 @@ class MySQLService(DatabaseABC):
     async def disconnect(self):
         """Close the connection to the MySQL database."""
         self.engine.dispose()
+    
+    async def create_metadata(self, schema):
+        schema.metadata.create_all(bind=self.engine)
 
     async def create_one(self, data, schema):
         """Create a single record in the MySQL database."""

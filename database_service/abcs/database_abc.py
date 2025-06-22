@@ -18,6 +18,10 @@ class DatabaseABC(Generic[S, T], ABC):
         pass
 
     @abstractmethod
+    async def create_metadata(self, schema: S):
+        pass
+
+    @abstractmethod
     async def create_one(self, data: T, schema: S) -> S:
         """Create a single record in the database."""
         pass
