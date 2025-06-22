@@ -18,21 +18,19 @@ class IDGeneratorService:
         """Returns milliseconds since Unix epoch (Jan 1, 1970 UTC)"""
         return int(datetime.now(tz=timezone.utc).timestamp() * 1000)
 
-    def generate(self, server_id: str, prefix: str | None = None) -> str:
+    def generate(self, prefix: str | None = None) -> str:
         """
-        ID Structure (60 bits total):
-        - 8 bits: server ID
+        ID Structure (52 bits total):
         - 6 bits: prefix ID
         - 42 bits: epoch time in ms
         - 4 bits: reserved for concurrency
+        - Id will 12 characters long
         """
-        server_id_bin = self._hash(server_id) % self.number_of_slots
         prefix_bin = self._prefix_to_int(prefix) if prefix else 0
         epoch_ms = self._get_epoch_ms()
         assert epoch_ms < (1 << 42), "Epoch timestamp exceeds 42-bit limit"
 
         unique_id = (
-            (server_id_bin << (6 + 42 + 4)) |
             (prefix_bin << (42 + 4)) |
             (epoch_ms << 4) |
             0  # Placeholder for concurrency bits

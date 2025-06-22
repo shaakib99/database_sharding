@@ -7,9 +7,13 @@ class UserModel(BaseModel):
     email: str | None = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CreateUserModel(BaseModel):
     username: str
     password: str
     email: str
+
+class UpdateUserModel(BaseModel):
+    username: str
+    password: str

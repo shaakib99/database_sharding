@@ -85,6 +85,12 @@ class ConsistentHashService:
     async def remove_keys(self, database, keys: list):
         for item, schema in keys:
             await database.delete_one(item.id, schema)
+    
+    async def get_all_database(self):
+        databases: list[DatabaseABC] = []
+        for database in self.hash_ring:
+            if database is not None: databases.append(database)
+        return databases
 
 
 class ConsistentHashServiceSingleton:
