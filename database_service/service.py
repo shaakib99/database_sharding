@@ -53,5 +53,7 @@ class DatabaseService(DatabaseServiceABC):
     async def delete_using_selected_database(self, id: str, database: DatabaseABC):
         return await database.delete_one(id, self.schema)
     
-    async def create_metadata(self, database: DatabaseABC):
-        await database.create_metadata(self.schema)
+    async def create_metadata(self):
+        databases = await self.consistent_hash_service.get_all_database()
+        for database in databases:
+            await database.create_metadata(self.schema)
