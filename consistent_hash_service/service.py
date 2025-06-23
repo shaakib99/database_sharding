@@ -43,7 +43,7 @@ class ConsistentHashService:
 
         return self.hash_ring[source_database_index]
             
-    async def add_database_in_hash_ring(self, id: str, database: DatabaseABC):
+    async def add_database_in_hash_ring(self, database: DatabaseABC):
         index = self._hash(database.__str__()) % self.number_of_slots
         if self.hash_ring[index] is not None: raise ValueError('Database already exist')
         

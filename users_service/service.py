@@ -15,7 +15,7 @@ class UsersService:
         for key, value in data.model_dump().items():
             setattr(model, key, value)
         
-        return await self.database_service.create_one(model)
+        return await self.database_service.create_one(model, model.id)
     
     async def update_one(self, id: str, data: UpdateUserModel):
         model = UserModel()

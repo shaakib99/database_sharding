@@ -21,7 +21,7 @@ class DatabaseService(DatabaseServiceABC):
         for database in databases:
             await database.disconnect()
     
-    async def create_one(self, data):
+    async def create_one(self, data, source_shard_id: str):
         database = await self.consistent_hash_service.get_database_from_unique_id(data.id)
         return await database.create_one(data, self.schema)
     

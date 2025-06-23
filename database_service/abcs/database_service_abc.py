@@ -22,7 +22,7 @@ class DatabaseServiceABC(Generic[S, T], ABC):
         pass
 
     @abstractmethod
-    async def create_one(self, data: T) -> S:
+    async def create_one(self, data: T, source_shard_id: str) -> S:
         """Create a single record in the database."""
         pass
 
