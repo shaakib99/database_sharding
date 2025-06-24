@@ -91,7 +91,17 @@ class ConsistentHashService:
         for database in self.hash_ring:
             if database is not None: databases.append(database)
         return databases
+    
+    async def get_database_from_key(self, id: str):
+        temp_id = (await self.redis_service.get(id))
+        while temp_id is not None:
+            temp_id = await self.redis_service.get(id)
+            if temp_id is None: break
+            id = temp_id
+        return await self.get_database_from_unique_id(id)
 
+    async def join_ids(self, id: str, shard_id):
+        await self.redis_service.put(id, shard_id)
 
 class ConsistentHashServiceSingleton:
     _instance = None

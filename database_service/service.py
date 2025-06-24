@@ -22,15 +22,16 @@ class DatabaseService(DatabaseServiceABC):
             await database.disconnect()
     
     async def create_one(self, data, source_shard_id: str):
-        database = await self.consistent_hash_service.get_database_from_unique_id(data.id)
+        await self.consistent_hash_service.join_ids(data.id, source_shard_id)
+        database = await self.consistent_hash_service.get_database_from_key(source_shard_id)
         return await database.create_one(data, self.schema)
     
     async def update_one(self, id: str, data):
-        database = await self.consistent_hash_service.get_database_from_unique_id(id)
+        database = await self.consistent_hash_service.get_database_from_key(id)
         return await database.update_one(id, data, self.schema)
     
     async def get_one(self, id: str):
-        database = await self.consistent_hash_service.get_database_from_unique_id(id)
+        database = await self.consistent_hash_service.get_database_from_key(id)
         return database.get_one(id, self.schema)
     
     async def get_all(self, query) -> list:
@@ -41,7 +42,7 @@ class DatabaseService(DatabaseServiceABC):
         return result
 
     async def delete_one(self, id: str) -> None:
-        database = await self.consistent_hash_service.get_database_from_unique_id(id)
+        database = await self.consistent_hash_service.get_database_from_key(id)
         return await database.delete_one(id, self.schema)
     
     async def create_using_selected_database(self, data, database):
