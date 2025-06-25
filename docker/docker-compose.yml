@@ -19,7 +19,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=testdb
     volumes:
-      - ./data/mysql-1:var/lib/mysql
+      - ./data/mysql-1:/var/lib/mysql
   
   mysql-2:
     container_name: mysql-2
@@ -30,7 +30,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=testdb
     volumes:
-      - ./data/mysql-2:var/lib/mysql
+      - ./data/mysql-2:/var/lib/mysql
 
   mysql-3:
     container_name: mysql-3
@@ -41,4 +41,4 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=testdb
     volumes:
-      - ./data/mysql-3:var/lib/mysql
+      - ./data/mysql-3:/var/lib/mysql

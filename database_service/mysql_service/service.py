@@ -29,24 +29,24 @@ class MySQLService(DatabaseABC):
 
     async def get_one(self, id: str, schema):
         """Read a single record from the MySQL database by its ID."""
-        data = self.session.query(schema).first()
+        data = self.session.query(schema).get(id)
         if not data: raise NotFoundException('record not found')
         return data
 
     async def get_all(self, query, schema):
         """Read all records from the MySQL database."""
         cursor = self.session.query(schema)
-        cursor = cursor.limit(query.limit)
-        cursor = cursor.offset(query.skip)
-        if query.sort:
-            cursor = cursor.order_by(query.sort)
+        if query.sort_by:
+            cursor = cursor.order_by(query.sort_by)
         if query.filter:
             for key, value in query.filter.items():
                 cursor = cursor.filter(getattr(schema, key) == value)
         if query.fields:
             cursor = cursor.with_entities(*[getattr(schema, field) for field in query.fields])
-
-        return cursor.all()
+        cursor = cursor.limit(query.limit)
+        cursor = cursor.offset(query.skip)
+        return []
+        # return cursor.all()
 
     async def update_one(self, id: str, data, schema):
         """Update a single record in the MySQL database."""

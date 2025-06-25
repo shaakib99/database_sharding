@@ -73,7 +73,11 @@ class ConsistentHashService:
         await self.remove_keys(database, delete_keys)
     
     async def redistribute_keys(self, source_database: DatabaseABC, target_database: DatabaseABC, schema):
-        source_data = await source_database.get_all(QueryModel(), schema)
+        await source_database.create_metadata(schema)
+        await target_database.create_metadata(schema)
+
+        query_model = QueryModel()
+        source_data = await source_database.get_all(query_model, schema)
         delete_data = []
         for item in source_data:
             if self.get_database_from_unique_id(item.id) != target_database: continue
