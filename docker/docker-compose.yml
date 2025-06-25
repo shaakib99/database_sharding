@@ -1,0 +1,44 @@
+version: '1.0'
+services:
+  app:
+    container_name: 'shard_app'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - AVAILABLE_DATABASES=mysql://root:root@localhost:3306/testdb,mysql://root:root@localhost:3307/testdb,mysql://root:root@localhost:3308/testdb
+    volumes:
+      - ./data/app
+  
+  mysql-1:
+    container_name: mysql-1
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=testdb
+    volumes:
+      - ./data/mysql-1:var/lib/mysql
+  
+  mysql-2:
+    container_name: mysql-2
+    image: mysql:latest
+    ports:
+      - 3307:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=testdb
+    volumes:
+      - ./data/mysql-2:var/lib/mysql
+
+  mysql-3:
+    container_name: mysql-3
+    image: mysql:latest
+    ports:
+      - 3308:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=testdb
+    volumes:
+      - ./data/mysql-3:var/lib/mysql
