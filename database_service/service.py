@@ -32,7 +32,7 @@ class DatabaseService(DatabaseServiceABC):
     
     async def get_one(self, id: str):
         database = await self.consistent_hash_service.get_database_from_key(id)
-        return database.get_one(id, self.schema)
+        return await database.get_one(id, self.schema)
     
     async def get_all(self, query) -> list:
         databases = await self.consistent_hash_service.get_all_database()

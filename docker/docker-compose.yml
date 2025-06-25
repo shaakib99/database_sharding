@@ -42,3 +42,11 @@ services:
       - MYSQL_DATABASE=testdb
     volumes:
       - ./data/mysql-3:/var/lib/mysql
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/redis:/var/lib/redis

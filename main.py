@@ -13,10 +13,6 @@ async def lifespan(app: FastAPI):
     # Code to run at startup
     load_dotenv()
     
-    # create metadata
-    schemas = get_all_schemas_in_order()
-    for schema in schemas:
-        await DatabaseService(schema).create_metadata()
 
     # Add database in hash ring
     consistent_hash_service = ConsistentHashServiceSingleton()
@@ -29,6 +25,10 @@ async def lifespan(app: FastAPI):
         await consistent_hash_service.add_database_in_hash_ring(database)
         databases.append(database)
 
+    # create metadata
+    schemas = get_all_schemas_in_order()
+    for schema in schemas:
+        await DatabaseService(schema).create_metadata()
 
     yield
     # Code to run at shutdown

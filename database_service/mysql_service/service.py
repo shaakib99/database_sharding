@@ -22,14 +22,15 @@ class MySQLService(DatabaseABC):
 
     async def create_one(self, data, schema):
         """Create a single record in the MySQL database."""
-        data = schema(*data.model_dump())
-        self.session.add(data)
+        data_model = schema(**data.model_dump())
+        self.session.add(data_model)
         self.session.commit()
         self.session.flush()
+        return data_model
 
     async def get_one(self, id: str, schema):
         """Read a single record from the MySQL database by its ID."""
-        data = self.session.query(schema).get(id)
+        data = self.session.query(schema).filter(schema.id == id).first()
         if not data: raise NotFoundException('record not found')
         return data
 
@@ -45,8 +46,7 @@ class MySQLService(DatabaseABC):
             cursor = cursor.with_entities(*[getattr(schema, field) for field in query.fields])
         cursor = cursor.limit(query.limit)
         cursor = cursor.offset(query.skip)
-        return []
-        # return cursor.all()
+        return cursor.all()
 
     async def update_one(self, id: str, data, schema):
         """Update a single record in the MySQL database."""

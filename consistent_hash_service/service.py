@@ -16,7 +16,7 @@ class ConsistentHashService:
     async def get_database_from_unique_id(self, id: str) -> DatabaseABC:
         database_index = self._hash(id) % self.number_of_slots
         original_database_index =  database_index
-        while self.hash_ring[database_index] is None and database_index < len(self.hash_ring):
+        while database_index < len(self.hash_ring) and self.hash_ring[database_index] is None:
             database_index += 1
         
         if database_index == len(self.hash_ring):
@@ -97,11 +97,8 @@ class ConsistentHashService:
         return databases
     
     async def get_database_from_key(self, id: str):
-        temp_id = (await self.redis_service.get(id))
-        while temp_id is not None:
-            temp_id = await self.redis_service.get(id)
-            if temp_id is None: break
-            id = temp_id
+        while await self.redis_service.get(id) != id:
+            id = str(await self.redis_service.get(id))
         return await self.get_database_from_unique_id(id)
 
     async def join_ids(self, id: str, shard_id):

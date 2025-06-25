@@ -1,4 +1,3 @@
-from typing_extensions import Self
 from redis import Redis
 from pydantic import BaseModel
 from typing import Generic, TypeVar
@@ -7,7 +6,7 @@ T = TypeVar(name='T', bound=BaseModel)
 
 class RedisService(Generic[T]):
     def __init__(self, host: str, port: int):
-        self.redis_client = Redis(host=host, port=port)
+        self.redis_client = Redis(host=host, port=port, decode_responses=True)
     
     async def connect(self):
         self.redis_client.ping()
@@ -15,13 +14,12 @@ class RedisService(Generic[T]):
     async def disconnect(self):
         self.redis_client.quit()
     
-    async def get(self, key: str) -> T | None:
-        data = await self.redis_client.get(key)
-        if not data: return data.model_validate()
-        return None
+    async def get(self, key: str):
+        data = self.redis_client.get(key)
+        return data
     
     async def put(self, key: str, data: T):
-        self.redis_client.set(key, data.model_dump().__str__())
+        self.redis_client.set(key, data.__str__())
 
 class RedisServiceSingleTon:
     _instance = None

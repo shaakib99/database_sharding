@@ -4,7 +4,7 @@ from database_service.models import QueryModel
 from .models import CreateUserModel, UpdateUserModel, UserModel
 from typing import Annotated
 
-users_router = APIRouter(prefix='/user')
+users_router = APIRouter(prefix='/users')
 
 users_service = UsersService()
 
@@ -16,7 +16,7 @@ async def get_one(id: str):
 async def get_all(query: Annotated[QueryModel, dict]):
     return await users_service.get_all(query)
 
-@users_router.post('')
+@users_router.post('', response_model=UserModel)
 async def create_one(data: CreateUserModel):
     return await users_service.create_one(data)
 
