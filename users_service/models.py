@@ -5,6 +5,7 @@ class UserModel(BaseModel):
     username: str | None = None
     password: str | None = None
     email: str | None = None
+    shard_id: str | None = None
 
     class Config:
         from_attributes = True

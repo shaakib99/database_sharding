@@ -12,6 +12,7 @@ class UsersService:
     async def create_one(self, data: CreateUserModel):
         model = UserModel()
         model.id = self.id_generation_service.generate('USER_')
+        model.shard_id = model.id
         for key, value in data.model_dump().items():
             setattr(model, key, value)
         
