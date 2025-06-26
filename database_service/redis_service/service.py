@@ -18,8 +18,8 @@ class RedisService(Generic[T]):
         data = self.redis_client.get(key)
         return data
     
-    async def put(self, key: str, data: T):
-        self.redis_client.set(key, data.__str__())
+    async def put(self, key: str, data: str):
+        self.redis_client.set(key, data)
 
 class RedisServiceSingleTon:
     _instance = None

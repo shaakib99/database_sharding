@@ -61,6 +61,9 @@ class MySQLService(DatabaseABC):
         record = self.get_one(id, schema)
         self.session.delete(record)
         self.session.commit()
+    
+    def get_db_url(self):
+        return self.url
 
 class MySQLServiceSingleton:
     _instance = {}

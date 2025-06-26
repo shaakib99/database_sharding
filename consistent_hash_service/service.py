@@ -2,13 +2,27 @@ from database_service.redis_service.service import RedisService
 from database_service.abcs.database_abc import DatabaseABC
 from database_service.models import QueryModel
 from common.utils import get_all_schemas_in_order
+from database_service.mysql_service.service import MySQLServiceSingleton
 import hashlib
+import json
 
 class ConsistentHashService:
     def __init__(self, number_of_slots = 1000, redis_service: RedisService | None = None, database_service: DatabaseABC | None = None):
         self.hash_ring: list[DatabaseABC | None] = [None] * number_of_slots
         self.number_of_slots = number_of_slots
         self.redis_service = redis_service or RedisService('localhost', 6379)
+        self.database_exist = set()
+    
+    async def init_hash_ring(self):
+        if await self.redis_service.get('hash_ring') is not None:
+            hash_urls = json.loads(str(await self.redis_service.get('hash_ring')))
+            result = []
+            for url in hash_urls:
+                if url is None: result.append(None)
+                else: 
+                    result.append(MySQLServiceSingleton(url))
+                    self.database_exist.add(url)
+            self.hash_ring = result
 
     def _hash(self, s: str) -> int:
         return int(hashlib.md5(s.encode()).hexdigest(), 16)
@@ -44,8 +58,10 @@ class ConsistentHashService:
         return self.hash_ring[source_database_index]
             
     async def add_database_in_hash_ring(self, database: DatabaseABC):
+        if database.get_db_url() in self.database_exist: return 
+
         index = self._hash(database.__str__()) % self.number_of_slots
-        if self.hash_ring[index] is not None: raise ValueError('Database already exist')
+        if self.hash_ring[index] is not None:  raise ValueError('Database already exist')
         
         source_database = self._find_next_database_from_index(index)
         delete_keys = []
@@ -56,6 +72,7 @@ class ConsistentHashService:
         self.hash_ring[index] = database
 
         await self.remove_keys(source_database, delete_keys)
+        await self._update_redis_with_hash_ring()
 
     async def remove_database_from_hash_ring(self, database: DatabaseABC):
         index = self._hash(database.__str__()) % self.number_of_slots
@@ -80,7 +97,7 @@ class ConsistentHashService:
         source_data = await source_database.get_all(query_model, schema)
         delete_data = []
         for item in source_data:
-            if self.get_database_from_unique_id(item.id) != target_database: continue
+            if await self.get_database_from_unique_id(item.id) != target_database: continue
             await target_database.create_one(item, schema)
             delete_data.append((item, schema))
         return delete_data
@@ -103,6 +120,14 @@ class ConsistentHashService:
 
     async def join_ids(self, id: str, shard_id):
         await self.redis_service.put(id, shard_id)
+    
+    async def _update_redis_with_hash_ring(self):
+        hash_ring = []
+        for data in self.hash_ring:
+            if data is None: hash_ring.append(None)
+            else: hash_ring.append(data.get_db_url())
+        
+        await self.redis_service.put('hash_ring', json.dumps(hash_ring))
 
 class ConsistentHashServiceSingleton:
     _instance = None

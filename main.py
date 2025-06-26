@@ -16,6 +16,7 @@ async def lifespan(app: FastAPI):
 
     # Add database in hash ring
     consistent_hash_service = ConsistentHashServiceSingleton()
+    await consistent_hash_service.init_hash_ring()
     database_urls: list[str] = os.getenv('AVAILABLE_DATABASES', '').split(',') 
     databases = []
     for url in database_urls:

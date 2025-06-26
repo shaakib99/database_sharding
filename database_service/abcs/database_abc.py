@@ -8,6 +8,11 @@ T = TypeVar('T', bound=BaseModel)
 
 class DatabaseABC(Generic[S, T], ABC):
     @abstractmethod
+    def get_db_url(self) -> str:
+        """return db url"""
+        pass
+
+    @abstractmethod
     async def connect(self):
         """Establish a connection to the database."""
         pass
