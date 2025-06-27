@@ -5,12 +5,12 @@ from common.utils import get_all_schemas_in_order
 from database_service.mysql_service.service import MySQLServiceSingleton
 import hashlib
 import json
-
+import os
 class ConsistentHashService:
     def __init__(self, number_of_slots = 1000, redis_service: RedisService | None = None, database_service: DatabaseABC | None = None):
         self.hash_ring: list[DatabaseABC | None] = [None] * number_of_slots
         self.number_of_slots = number_of_slots
-        self.redis_service = redis_service or RedisService('localhost', 6379)
+        self.redis_service = redis_service or RedisService(os.getenv('REDIS_HOST', 'localhost'), int(os.getenv('REDIS_PORT', 6379)))
         self.database_exist = set()
     
     async def init_hash_ring(self):
@@ -86,8 +86,9 @@ class ConsistentHashService:
             delete_keys = await self.redistribute_keys(database, target_database, schema)
             
         self.hash_ring[index] = None
-
         await self.remove_keys(database, delete_keys)
+        await self._update_redis_with_hash_ring()
+
     
     async def redistribute_keys(self, source_database: DatabaseABC, target_database: DatabaseABC, schema):
         await source_database.create_metadata(schema)

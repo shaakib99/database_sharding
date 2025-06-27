@@ -2,10 +2,12 @@ from fastapi import FastAPI, APIRouter
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from users_service.route import users_router
+from consistent_hash_service.route import hash_ring_router
 from common.utils import get_all_schemas_in_order
 from database_service.service import DatabaseService
 from consistent_hash_service.service import ConsistentHashServiceSingleton
 from database_service.mysql_service.service import MySQLServiceSingleton
+from database_service.redis_service.service import RedisServiceSingleTon
 import os
 
 @asynccontextmanager
@@ -13,6 +15,9 @@ async def lifespan(app: FastAPI):
     # Code to run at startup
     load_dotenv()
     
+    # Check redis
+    redis_service = RedisServiceSingleTon(os.getenv('REDIS_HOST', 'localhost'), int(os.getenv('REDIS_PORT', 6379)))
+    await redis_service.connect()
 
     # Add database in hash ring
     consistent_hash_service = ConsistentHashServiceSingleton()
@@ -39,6 +44,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-routers: list[APIRouter] = [users_router]
+routers: list[APIRouter] = [users_router, hash_ring_router]
 for router in routers:
     app.include_router(router)
