@@ -1,7 +1,7 @@
 from database_service.redis_service.service import RedisService
 from database_service.abcs.database_abc import DatabaseABC
 from database_service.models import QueryModel
-from common.utils import get_all_schemas_in_order
+from common.utils import get_all_schemas_in_order, row2dict
 from database_service.mysql_service.service import MySQLServiceSingleton
 import hashlib
 import json
@@ -60,8 +60,10 @@ class ConsistentHashService:
     async def add_database_in_hash_ring(self, database: DatabaseABC):
         if database.get_db_url() in self.database_exist: return 
 
-        index = self._hash(database.__str__()) % self.number_of_slots
+        index = self._hash(database.get_db_url().__str__()) % self.number_of_slots
         if self.hash_ring[index] is not None:  raise ValueError('Database already exist')
+        for schema in get_all_schemas_in_order():
+            await database.create_metadata(schema)
         
         source_database = self._find_next_database_from_index(index)
         delete_keys = []
@@ -70,12 +72,12 @@ class ConsistentHashService:
                 delete_keys = await self.redistribute_keys(source_database, database, schema)
 
         self.hash_ring[index] = database
-
-        await self.remove_keys(source_database, delete_keys)
+        self.database_exist.add(database.get_db_url())
         await self._update_redis_with_hash_ring()
+        await self.remove_keys(source_database, delete_keys)
 
     async def remove_database_from_hash_ring(self, database: DatabaseABC):
-        index = self._hash(database.__str__()) % self.number_of_slots
+        index = self._hash(database.get_db_url().__str__()) % self.number_of_slots
         if self.hash_ring[index] is None: raise ValueError('Database does not exist')
         
         target_database = self._find_next_database_from_index(index)
@@ -86,20 +88,21 @@ class ConsistentHashService:
             delete_keys = await self.redistribute_keys(database, target_database, schema)
             
         self.hash_ring[index] = None
-        await self.remove_keys(database, delete_keys)
         await self._update_redis_with_hash_ring()
+        self.database_exist.remove(database.get_db_url())
+        await self.remove_keys(database, delete_keys)
 
     
     async def redistribute_keys(self, source_database: DatabaseABC, target_database: DatabaseABC, schema):
         await source_database.create_metadata(schema)
         await target_database.create_metadata(schema)
 
-        query_model = QueryModel()
+        query_model = QueryModel(limit=10000)
         source_data = await source_database.get_all(query_model, schema)
         delete_data = []
         for item in source_data:
-            if await self.get_database_from_unique_id(item.id) != target_database: continue
-            await target_database.create_one(item, schema)
+            # if await self.get_database_from_unique_id(item.id) != target_database: continue
+            await target_database.create_one(row2dict(item), schema)
             delete_data.append((item, schema))
         return delete_data
 

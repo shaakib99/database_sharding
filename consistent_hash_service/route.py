@@ -9,6 +9,7 @@ hash_ring_service = ConsistentHashServiceSingleton()
 @hash_ring_router.post('/add')
 async def add_database_in_hash_ring(data: CreateDatabaseModel):
     database = MySQLServiceSingleton(data.url)
+    await database.connect()
     return await hash_ring_service.add_database_in_hash_ring(database)
 
 @hash_ring_router.post('/remove')
