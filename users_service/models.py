@@ -16,5 +16,5 @@ class CreateUserModel(BaseModel):
     email: str
 
 class UpdateUserModel(BaseModel):
-    username: str
-    password: str
+    username: str | None = None
+    password: str | None = None
