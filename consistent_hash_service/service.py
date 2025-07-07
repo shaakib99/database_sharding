@@ -68,8 +68,15 @@ class ConsistentHashService:
         source_database = self._find_next_database_from_index(index)
         delete_keys = []
         if source_database is not None:
-            for schema in get_all_schemas_in_order(): 
-                delete_keys = await self.redistribute_keys(source_database, database, schema)
+            for schema in get_all_schemas_in_order():
+                await database.create_metadata(schema)
+                query_model = QueryModel(limit=10000)
+                source_data = await source_database.get_all(query_model, schema)
+                for item in source_data:
+                    source_database_index = self.get_database_from_unique_id(item.id)
+                    if source_database_index == index:
+                        await database.create_one(row2dict(item), schema)
+                        delete_keys.append((item, schema))
 
         self.hash_ring[index] = database
         self.database_exist.add(database.get_db_url())
@@ -101,7 +108,6 @@ class ConsistentHashService:
         source_data = await source_database.get_all(query_model, schema)
         delete_data = []
         for item in source_data:
-            # if await self.get_database_from_unique_id(item.id) != target_database: continue
             await target_database.create_one(row2dict(item), schema)
             delete_data.append((item, schema))
         return delete_data
